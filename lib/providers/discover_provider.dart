@@ -1,0 +1,135 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../models/discover_user_model.dart';
+import '../services/api_exception.dart';
+import 'providers.dart';
+
+@immutable
+class DiscoverFilters {
+  const DiscoverFilters({this.radiusKm = 5, this.category});
+  final double radiusKm;
+  final String? category; // gen_z | millennial | gen_x | null (All)
+
+  DiscoverFilters copyWith(
+          {double? radiusKm, String? category, bool clearCategory = false}) =>
+      DiscoverFilters(
+        radiusKm: radiusKm ?? this.radiusKm,
+        category: clearCategory ? null : (category ?? this.category),
+      );
+}
+
+@immutable
+class DiscoverState {
+  const DiscoverState({
+    this.users = const [],
+    this.filters = const DiscoverFilters(),
+    this.isLoading = false,
+    this.isLoadingMore = false,
+    this.hasMore = true,
+    this.page = 1,
+    this.error,
+  });
+
+  final List<DiscoverUser> users;
+  final DiscoverFilters filters;
+  final bool isLoading;
+  final bool isLoadingMore;
+  final bool hasMore;
+  final int page;
+  final String? error;
+
+  DiscoverState copyWith({
+    List<DiscoverUser>? users,
+    DiscoverFilters? filters,
+    bool? isLoading,
+    bool? isLoadingMore,
+    bool? hasMore,
+    int? page,
+    String? error,
+    bool clearError = false,
+  }) =>
+      DiscoverState(
+        users: users ?? this.users,
+        filters: filters ?? this.filters,
+        isLoading: isLoading ?? this.isLoading,
+        isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+        hasMore: hasMore ?? this.hasMore,
+        page: page ?? this.page,
+        error: clearError ? null : (error ?? this.error),
+      );
+}
+
+class DiscoverNotifier extends StateNotifier<DiscoverState> {
+  DiscoverNotifier(this._ref) : super(const DiscoverState());
+  final Ref _ref;
+
+  Future<void> refresh() async {
+    state = state.copyWith(isLoading: true, clearError: true);
+    try {
+      final page = await _ref.read(discoverServiceProvider).nearby(
+            radiusMeters: state.filters.radiusKm * 1000,
+            category: state.filters.category,
+            page: 1,
+          );
+      state = state.copyWith(
+        users: page.users,
+        isLoading: false,
+        hasMore: page.hasMore,
+        page: 1,
+      );
+    } on ApiException catch (e) {
+      state = state.copyWith(isLoading: false, error: e.message, users: []);
+    }
+  }
+
+  Future<void> loadMore() async {
+    if (state.isLoadingMore || !state.hasMore || state.isLoading) return;
+    state = state.copyWith(isLoadingMore: true);
+    try {
+      final next = state.page + 1;
+      final page = await _ref.read(discoverServiceProvider).nearby(
+            radiusMeters: state.filters.radiusKm * 1000,
+            category: state.filters.category,
+            page: next,
+          );
+      state = state.copyWith(
+        users: [...state.users, ...page.users],
+        isLoadingMore: false,
+        hasMore: page.hasMore,
+        page: next,
+      );
+    } on ApiException catch (e) {
+      state = state.copyWith(isLoadingMore: false, error: e.message);
+    }
+  }
+
+  void setRadius(double km) {
+    state = state.copyWith(filters: state.filters.copyWith(radiusKm: km));
+  }
+
+  Future<void> setCategory(String? category) async {
+    state = state.copyWith(
+      filters: category == null
+          ? state.filters.copyWith(clearCategory: true)
+          : state.filters.copyWith(category: category),
+    );
+    await refresh();
+  }
+
+  /// Send a connect request and optimistically flip the card state.
+  /// Throws [ApiException] on failure so the caller can show a snackbar.
+  Future<void> connect(String userId) async {
+    await _ref.read(connectionServiceProvider).request(userId);
+    state = state.copyWith(
+      users: state.users
+          .map((u) => u.id == userId
+              ? u.copyWith(connectionStatus: ConnectionStatus.pendingSent)
+              : u)
+          .toList(),
+    );
+  }
+}
+
+final discoverProvider = StateNotifierProvider<DiscoverNotifier, DiscoverState>(
+    (ref) => DiscoverNotifier(ref));
