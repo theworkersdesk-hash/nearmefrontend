@@ -13,6 +13,7 @@ import '../services/location_service.dart';
 import '../services/notification_service.dart';
 import '../services/socket_service.dart';
 import '../services/storage_service.dart';
+import '../services/support_service.dart';
 
 /// Dependency-injection providers. Wiring lives here so services stay testable
 /// (override these in tests with fakes).
@@ -54,6 +55,9 @@ final googleAuthServiceProvider =
 
 final notificationServiceProvider = Provider<NotificationService>(
     (ref) => NotificationService(ref.watch(apiServiceProvider)));
+
+final supportServiceProvider = Provider<SupportService>(
+    (ref) => SupportService(ref.watch(apiServiceProvider)));
 
 final socketServiceProvider = Provider<SocketService>((ref) {
   final socket = SocketService(ref.watch(storageServiceProvider));

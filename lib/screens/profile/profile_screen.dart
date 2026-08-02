@@ -5,6 +5,7 @@ import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/common/avatar_uploader.dart';
 import '../../widgets/common/vibe_button.dart';
+import '../support/help_support_screen.dart';
 import 'edit_profile_screen.dart';
 
 /// The "Me" tab — profile card + interests + account actions.
@@ -126,6 +127,16 @@ class ProfileScreen extends ConsumerWidget {
                     _InterestChip(label: user.interests[i], index: i),
                 ],
               ),
+            const SizedBox(height: 28),
+            Text('Support', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 12),
+            _ActionTile(
+              icon: Icons.help_outline,
+              label: 'Help & Support',
+              subtitle: 'FAQs and your requests',
+              onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => const HelpSupportScreen())),
+            ),
           ],
         ),
       ),
@@ -151,6 +162,64 @@ class ProfileScreen extends ConsumerWidget {
       ),
     );
     if (ok == true) ref.read(authProvider.notifier).logout();
+  }
+}
+
+/// A tappable settings-style row (icon + label + chevron).
+class _ActionTile extends StatelessWidget {
+  const _ActionTile({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.subtitle,
+  });
+  final IconData icon;
+  final String label;
+  final String? subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(AppShapes.card),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppShapes.card),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                height: 40,
+                width: 40,
+                decoration: BoxDecoration(
+                    color: AppColors.tertiary,
+                    borderRadius: BorderRadius.circular(12)),
+                child: Icon(icon, color: AppColors.primaryDark, size: 20),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(label,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyLarge
+                            ?.copyWith(fontWeight: FontWeight.w600)),
+                    if (subtitle != null)
+                      Text(subtitle!,
+                          style: Theme.of(context).textTheme.bodySmall),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: AppColors.mutedText),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 

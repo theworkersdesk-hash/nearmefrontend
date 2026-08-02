@@ -38,6 +38,17 @@ class ImageService {
     return cropped?.path;
   }
 
+  /// Picks an image without cropping (for screenshots/attachments where a square
+  /// crop would be wrong). Returns a local file path, or null if cancelled.
+  Future<String?> pickRaw({required ImageSource source}) async {
+    final picked = await _picker.pickImage(
+      source: source,
+      maxWidth: 1600,
+      imageQuality: 85, // keeps under the 2 MB server limit
+    );
+    return picked?.path;
+  }
+
   /// Uploads an avatar to `/users/me/photo`; returns the stored public URL.
   Future<String> uploadAvatar(String filePath) async {
     final data = await _api.uploadFile<Map<String, dynamic>>(

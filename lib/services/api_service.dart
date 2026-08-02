@@ -102,6 +102,9 @@ class ApiService {
   Future<T> put<T>(String path, {Object? data}) =>
       _unwrap<T>(_dio.put(path, data: data));
 
+  Future<T> patch<T>(String path, {Object? data}) =>
+      _unwrap<T>(_dio.patch(path, data: data));
+
   Future<T> delete<T>(String path) => _unwrap<T>(_dio.delete(path));
 
   /// Multipart upload of a single file under [field] (default `image`).
