@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/discover_user_model.dart';
 import '../services/api_exception.dart';
+import '../services/location_service.dart';
 import 'providers.dart';
 
 @immutable
@@ -29,6 +30,7 @@ class DiscoverState {
     this.hasMore = true,
     this.page = 1,
     this.error,
+    this.locationDeniedForever = false,
   });
 
   final List<DiscoverUser> users;
@@ -39,6 +41,10 @@ class DiscoverState {
   final int page;
   final String? error;
 
+  /// True when location permission is permanently blocked, so the UI offers
+  /// an "Open Settings" action instead of a plain "Retry".
+  final bool locationDeniedForever;
+
   DiscoverState copyWith({
     List<DiscoverUser>? users,
     DiscoverFilters? filters,
@@ -48,6 +54,7 @@ class DiscoverState {
     int? page,
     String? error,
     bool clearError = false,
+    bool? locationDeniedForever,
   }) =>
       DiscoverState(
         users: users ?? this.users,
@@ -57,6 +64,8 @@ class DiscoverState {
         hasMore: hasMore ?? this.hasMore,
         page: page ?? this.page,
         error: clearError ? null : (error ?? this.error),
+        locationDeniedForever:
+            locationDeniedForever ?? this.locationDeniedForever,
       );
 }
 
@@ -65,7 +74,24 @@ class DiscoverNotifier extends StateNotifier<DiscoverState> {
   final Ref _ref;
 
   Future<void> refresh() async {
-    state = state.copyWith(isLoading: true, clearError: true);
+    state = state.copyWith(
+        isLoading: true, clearError: true, locationDeniedForever: false);
+
+    // Ensure we have (and have pushed) a fresh device location before asking the
+    // backend who's nearby. This is what makes the Retry button re-prompt for
+    // permission and re-sync coordinates — without it, retrying just repeats the
+    // same failed query.
+    final outcome = await _ref.read(locationServiceProvider).ensureAndSync();
+    if (outcome != LocationOutcome.ok) {
+      state = state.copyWith(
+        isLoading: false,
+        users: [],
+        error: _locationMessage(outcome),
+        locationDeniedForever: outcome == LocationOutcome.deniedForever,
+      );
+      return;
+    }
+
     try {
       final page = await _ref.read(discoverServiceProvider).nearby(
             radiusMeters: state.filters.radiusKm * 1000,
@@ -82,6 +108,15 @@ class DiscoverNotifier extends StateNotifier<DiscoverState> {
       state = state.copyWith(isLoading: false, error: e.message, users: []);
     }
   }
+
+  String _locationMessage(LocationOutcome outcome) => switch (outcome) {
+        LocationOutcome.serviceDisabled =>
+          'Location is turned off. Turn on GPS/location and tap Retry.',
+        LocationOutcome.deniedForever =>
+          'Location permission is blocked. Open Settings to allow location, then come back.',
+        _ =>
+          'We need your location to find people nearby. Tap Retry and allow location access.',
+      };
 
   Future<void> loadMore() async {
     if (state.isLoadingMore || !state.hasMore || state.isLoading) return;

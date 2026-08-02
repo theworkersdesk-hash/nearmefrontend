@@ -111,9 +111,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                           const SizedBox(height: 6),
                           DropdownButtonFormField<String>(
                             initialValue: _gender,
+                            isExpanded: true, // prevents label overflow
                             items: _genders
                                 .map((g) =>
                                     DropdownMenuItem(value: g, child: Text(g)))
+                                .toList(),
+                            selectedItemBuilder: (context) => _genders
+                                .map((g) => Text(g,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis))
                                 .toList(),
                             onChanged: (v) => setState(() => _gender = v),
                           ),

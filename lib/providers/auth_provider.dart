@@ -209,10 +209,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } on ApiException catch (e) {
       state = state.copyWith(isLoading: false, error: e.message);
       return GoogleFlow.failed;
-    } catch (_) {
+    } catch (e) {
+      // Native Google/Firebase failure (device-side, before the backend call).
+      // Always log the real cause; show it verbatim in debug builds so the
+      // underlying PlatformException / FirebaseAuthException code is visible.
+      debugPrint('Google sign-in failed (native): $e');
       state = state.copyWith(
         isLoading: false,
-        error: 'Google sign-in unavailable. Configure Firebase to enable it.',
+        error: kDebugMode
+            ? 'Google sign-in failed: $e'
+            : 'Google sign-in is currently unavailable. Please try again.',
       );
       return GoogleFlow.failed;
     }

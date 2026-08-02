@@ -163,9 +163,14 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
         const SizedBox(height: 6),
         DropdownButtonFormField<String>(
           initialValue: _gender,
+          isExpanded: true, // fill the Expanded slot; prevents label overflow
           hint: const Text('Select'),
           items: _genders
               .map((g) => DropdownMenuItem(value: g, child: Text(_label(g))))
+              .toList(),
+          selectedItemBuilder: (context) => _genders
+              .map((g) => Text(_label(g),
+                  maxLines: 1, overflow: TextOverflow.ellipsis))
               .toList(),
           onChanged: (v) => setState(() => _gender = v),
         ),

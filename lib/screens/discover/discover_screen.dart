@@ -7,6 +7,7 @@ import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/connection_provider.dart';
 import '../../providers/discover_provider.dart';
+import '../../providers/providers.dart';
 import '../../utils/ui_feedback.dart';
 import '../../widgets/discover/user_card.dart';
 import 'pending_requests_screen.dart';
@@ -136,9 +137,20 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
               SliverFillRemaining(
                 hasScrollBody: false,
                 child: _Centered(
-                    icon: Icons.error_outline,
-                    text: state.error!,
-                    action: notifier.refresh),
+                  icon: state.locationDeniedForever
+                      ? Icons.location_off
+                      : Icons.error_outline,
+                  text: state.error!,
+                  actionLabel:
+                      state.locationDeniedForever ? 'Open Settings' : 'Retry',
+                  action: state.locationDeniedForever
+                      ? () async {
+                          await ref
+                              .read(locationServiceProvider)
+                              .openSettings();
+                        }
+                      : notifier.refresh,
+                ),
               )
             else if (state.users.isEmpty)
               SliverFillRemaining(
@@ -377,11 +389,16 @@ class _DiscoverSkeleton extends StatelessWidget {
 }
 
 class _Centered extends StatelessWidget {
-  const _Centered(
-      {required this.icon, required this.text, required this.action});
+  const _Centered({
+    required this.icon,
+    required this.text,
+    required this.action,
+    this.actionLabel = 'Retry',
+  });
   final IconData icon;
   final String text;
   final VoidCallback action;
+  final String actionLabel;
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -395,7 +412,7 @@ class _Centered extends StatelessWidget {
             child: Text(text, textAlign: TextAlign.center),
           ),
           const SizedBox(height: 12),
-          TextButton(onPressed: action, child: const Text('Retry')),
+          TextButton(onPressed: action, child: Text(actionLabel)),
         ],
       ),
     );
