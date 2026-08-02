@@ -96,12 +96,48 @@ class AuthService {
     return UserModel.fromJson(data['user'] as Map<String, dynamic>);
   }
 
-  Future<UserModel> googleSignIn(
-      {required String idToken, String? phone}) async {
+  /// Google Sign-In step 1. Existing users are logged in (tokens persisted);
+  /// a new Google user returns [GoogleAuthResult.isNewUser] with no tokens yet
+  /// (they must OTP-verify a phone first via [googleSendOtp] / [googleVerify]).
+  Future<GoogleAuthResult> googleSignIn({required String idToken}) async {
     final data = await _api.post<Map<String, dynamic>>(
       '/auth/google-signin',
       skipAuth: true,
-      data: {'idToken': idToken, if (phone != null) 'phone': phone},
+      data: {'idToken': idToken},
+    );
+    if (data['isNewUser'] == true) {
+      return GoogleAuthResult(
+        isNewUser: true,
+        email: data['email'] as String?,
+        name: data['name'] as String?,
+      );
+    }
+    await _persist(data['tokens'] as Map<String, dynamic>);
+    return GoogleAuthResult(
+      isNewUser: false,
+      user: UserModel.fromJson(data['user'] as Map<String, dynamic>),
+    );
+  }
+
+  /// Step 2a — send a phone OTP for a new Google user.
+  Future<void> googleSendOtp({required String idToken, required String phone}) async {
+    await _api.post<Map<String, dynamic>>(
+      '/auth/google-signin/send-otp',
+      skipAuth: true,
+      data: {'idToken': idToken, 'phone': phone},
+    );
+  }
+
+  /// Step 2b — verify the phone OTP; creates the account and persists tokens.
+  Future<UserModel> googleVerify({
+    required String idToken,
+    required String phone,
+    required String otp,
+  }) async {
+    final data = await _api.post<Map<String, dynamic>>(
+      '/auth/google-signin/verify',
+      skipAuth: true,
+      data: {'idToken': idToken, 'phone': phone, 'otp': otp},
     );
     await _persist(data['tokens'] as Map<String, dynamic>);
     return UserModel.fromJson(data['user'] as Map<String, dynamic>);
@@ -154,4 +190,14 @@ class VerifyOtpResult {
   const VerifyOtpResult({required this.bothVerified, this.user});
   final bool bothVerified;
   final UserModel? user;
+}
+
+/// Outcome of Google Sign-In step 1: either an existing user is logged in
+/// ([user] set), or it's a new user that must OTP-verify a phone ([isNewUser]).
+class GoogleAuthResult {
+  const GoogleAuthResult({required this.isNewUser, this.user, this.email, this.name});
+  final bool isNewUser;
+  final UserModel? user; // existing user
+  final String? email; // new user (from Google)
+  final String? name;
 }

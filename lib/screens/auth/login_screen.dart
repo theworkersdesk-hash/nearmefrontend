@@ -47,13 +47,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _googleSignIn() async {
-    final ok = await ref.read(authProvider.notifier).signInWithGoogle();
+    final flow = await ref.read(authProvider.notifier).signInWithGoogle();
     if (!mounted) return;
-    if (!ok && ref.read(authProvider).error != null) {
+    if (flow == GoogleFlow.needsPhone) {
+      context.push(Routes.googlePhone); // new user → verify a phone
+    } else if (flow == GoogleFlow.failed && ref.read(authProvider).error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(ref.read(authProvider).error!)),
       );
     }
+    // GoogleFlow.done → router redirects based on AuthStatus.
   }
 
   @override

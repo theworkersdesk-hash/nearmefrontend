@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../providers/auth_provider.dart';
 import '../providers/onboarding_provider.dart';
+import '../screens/auth/google_phone_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/otp_verification_screen.dart';
 import '../screens/auth/profile_setup_screen.dart';
@@ -20,6 +21,7 @@ class Routes {
   static const signup = '/signup';
   static const login = '/login';
   static const otp = '/otp';
+  static const googlePhone = '/google-phone';
   static const profileSetup = '/profile-setup';
   static const home = '/home';
 }
@@ -51,6 +53,9 @@ final routerProvider = Provider<GoRouter>((ref) {
             OtpVerificationScreen(args: state.extra as OtpArgs),
       ),
       GoRoute(
+          path: Routes.googlePhone,
+          builder: (_, __) => const GooglePhoneScreen()),
+      GoRoute(
           path: Routes.profileSetup,
           builder: (_, __) => const ProfileSetupScreen()),
       GoRoute(path: Routes.home, builder: (_, __) => const HomeShell()),
@@ -73,7 +78,8 @@ final routerProvider = Provider<GoRouter>((ref) {
             return loc == Routes.onboarding ? null : Routes.onboarding;
           }
           final onAuthScreens =
-              {Routes.login, Routes.signup, Routes.otp}.contains(loc);
+              {Routes.login, Routes.signup, Routes.otp, Routes.googlePhone}
+                  .contains(loc);
           return onAuthScreens ? null : Routes.login;
 
         case AuthStatus.needsProfile:
@@ -87,6 +93,7 @@ final routerProvider = Provider<GoRouter>((ref) {
             Routes.login,
             Routes.signup,
             Routes.otp,
+            Routes.googlePhone,
             Routes.profileSetup,
           };
           return transient.contains(loc) ? Routes.home : null;

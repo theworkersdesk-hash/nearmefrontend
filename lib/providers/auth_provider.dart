@@ -13,6 +13,13 @@ enum AuthStatus {
   authenticated,
 }
 
+/// Result of Google Sign-In step 1.
+enum GoogleFlow {
+  done, // existing user logged in (router redirects)
+  needsPhone, // new user — collect + OTP-verify a phone
+  failed, // cancelled or error
+}
+
 @immutable
 class AuthState {
   const AuthState(
@@ -171,31 +178,68 @@ class AuthNotifier extends StateNotifier<AuthState> {
     return true;
   }
 
-  /// Google Sign-In: runs the native flow → Firebase ID token → backend.
-  /// Returns false on cancel/error (see state.error).
-  Future<bool> signInWithGoogle() async {
+  // Carries the verified Google ID token + email between step 1 and the phone
+  // OTP steps for a NEW Google user (see GooglePhoneScreen).
+  String? pendingGoogleIdToken;
+  String? pendingGoogleEmail;
+
+  /// Google Sign-In step 1: native flow → Firebase ID token → backend.
+  /// - [GoogleFlow.done]     existing user logged in (router redirects)
+  /// - [GoogleFlow.needsPhone] new user — go collect + verify a phone
+  /// - [GoogleFlow.failed]   cancelled or error (see state.error)
+  Future<GoogleFlow> signInWithGoogle() async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final idToken = await _ref.read(googleAuthServiceProvider).signIn();
       if (idToken == null) {
         state = state.copyWith(isLoading: false); // user cancelled
-        return false;
+        return GoogleFlow.failed;
       }
-      final user =
+      final result =
           await _ref.read(authServiceProvider).googleSignIn(idToken: idToken);
+      if (result.isNewUser) {
+        pendingGoogleIdToken = idToken;
+        pendingGoogleEmail = result.email;
+        state = state.copyWith(isLoading: false);
+        return GoogleFlow.needsPhone;
+      }
       state = state.copyWith(
-          isLoading: false, status: _statusForUser(user), user: user);
-      return true;
+          isLoading: false, status: _statusForUser(result.user!), user: result.user);
+      return GoogleFlow.done;
     } on ApiException catch (e) {
       state = state.copyWith(isLoading: false, error: e.message);
-      return false;
+      return GoogleFlow.failed;
     } catch (_) {
       state = state.copyWith(
         isLoading: false,
         error: 'Google sign-in unavailable. Configure Firebase to enable it.',
       );
-      return false;
+      return GoogleFlow.failed;
     }
+  }
+
+  /// New-Google-user step 2a — send a phone OTP. True on success.
+  Future<bool> googleSendOtp(String phone) async {
+    final token = pendingGoogleIdToken;
+    if (token == null) return false;
+    await _guard(
+      () => _ref.read(authServiceProvider).googleSendOtp(idToken: token, phone: phone),
+    );
+    return state.error == null;
+  }
+
+  /// New-Google-user step 2b — verify OTP, create account, establish session.
+  Future<bool> googleVerify(String phone, String otp) async {
+    final token = pendingGoogleIdToken;
+    if (token == null) return false;
+    final user = await _guard(
+      () => _ref.read(authServiceProvider).googleVerify(idToken: token, phone: phone, otp: otp),
+    );
+    if (user == null) return false;
+    pendingGoogleIdToken = null;
+    pendingGoogleEmail = null;
+    state = state.copyWith(status: _statusForUser(user), user: user);
+    return true;
   }
 
   /// Submit profile-setup details. On success flips status to authenticated.

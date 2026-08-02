@@ -65,12 +65,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   }
 
   Future<void> _googleSignIn() async {
-    final ok = await ref.read(authProvider.notifier).signInWithGoogle();
+    final flow = await ref.read(authProvider.notifier).signInWithGoogle();
     if (!mounted) return;
-    if (!ok && ref.read(authProvider).error != null) {
+    if (flow == GoogleFlow.needsPhone) {
+      context.push(Routes.googlePhone); // new user → verify a phone
+    } else if (flow == GoogleFlow.failed && ref.read(authProvider).error != null) {
       _snack(ref.read(authProvider).error!);
     }
-    // On success the router redirects based on AuthStatus.
+    // GoogleFlow.done → router redirects based on AuthStatus.
   }
 
   void _snack(String msg) =>
