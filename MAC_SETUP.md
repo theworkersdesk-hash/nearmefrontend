@@ -235,6 +235,10 @@ NODE_ENV=development
 
 ## 5. Infrastructure: Postgres + Redis (Docker)
 
+> **Deep reference:** [`DATABASE_AND_REDIS.md`](DATABASE_AND_REDIS.md) covers the full schema,
+> migration list, PostGIS geo queries, native (non‑Docker) install, the cache‑aside model, and
+> backup/restore. This section is the quick Docker version.
+
 The root `docker-compose.yml` defines every service. For local dev you typically only run the
 **db** and **redis** containers and run backend/admin/flutter natively (faster reloads).
 
