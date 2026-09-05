@@ -3,8 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/event_provider.dart';
+import '../../providers/providers.dart';
+import '../../services/api_exception.dart';
 import '../../widgets/common/avatar_uploader.dart';
-import '../../widgets/common/vibe_button.dart';
+import '../../widgets/common/hloppl_button.dart';
+import '../events/create_event_screen.dart';
 import '../support/help_support_screen.dart';
 import 'edit_profile_screen.dart';
 
@@ -93,7 +97,7 @@ class ProfileScreen extends ConsumerWidget {
                   const SizedBox(height: 18),
                   SizedBox(
                     width: 200,
-                    child: VibeButton(
+                    child: HlopplButton(
                       label: 'Edit Profile',
                       height: 48,
                       onPressed: () => Navigator.of(context).push(
@@ -104,7 +108,19 @@ class ProfileScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 28),
+            Row(
+              children: [
+                const Icon(Icons.celebration_outlined,
+                    size: 20, color: AppColors.primaryDark),
+                const SizedBox(width: 6),
+                Text('My Events',
+                    style: Theme.of(context).textTheme.titleLarge),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const _EventsSection(),
+            const SizedBox(height: 28),
             Row(
               children: [
                 const Icon(Icons.interests_outlined,
@@ -162,6 +178,166 @@ class ProfileScreen extends ConsumerWidget {
       ),
     );
     if (ok == true) ref.read(authProvider.notifier).logout();
+  }
+}
+
+/// Event-creation entry point + monthly quota. Free users get 3 events/month;
+/// once exhausted, creating more requires the premium plan (paywall).
+class _EventsSection extends ConsumerWidget {
+  const _EventsSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final quotaAsync = ref.watch(eventQuotaProvider);
+
+    return quotaAsync.when(
+      loading: () => const _EventsCard(
+        child: Center(
+          child: Padding(
+            padding: EdgeInsets.all(8),
+            child: SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
+        ),
+      ),
+      error: (_, __) => _EventsCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text("Couldn't load your event quota.",
+                style: TextStyle(color: AppColors.mutedText)),
+            const SizedBox(height: 12),
+            HlopplButton(
+              label: 'Create Event',
+              height: 48,
+              onPressed: () => _createEvent(context, ref, canCreate: true),
+            ),
+          ],
+        ),
+      ),
+      data: (q) {
+        final subtitle = q.isPremium
+            ? 'Premium — unlimited events'
+                '${q.premiumUntil != null ? ' until ${_fmtDate(q.premiumUntil!)}' : ''}'
+            : '${q.remaining} of ${q.limit} free events left this month';
+
+        return _EventsCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Icon(q.isPremium ? Icons.workspace_premium : Icons.event_note,
+                      color: AppColors.primary, size: 22),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(subtitle,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyLarge
+                                ?.copyWith(fontWeight: FontWeight.w600)),
+                        if (!q.isPremium && q.resetsAt != null)
+                          Text('Resets on ${_fmtDate(q.resetsAt!)}',
+                              style: Theme.of(context).textTheme.bodySmall),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              HlopplButton(
+                label: q.canCreate ? 'Create Event' : 'Upgrade to create more',
+                height: 48,
+                onPressed: () =>
+                    _createEvent(context, ref, canCreate: q.canCreate),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _createEvent(BuildContext context, WidgetRef ref,
+      {required bool canCreate}) async {
+    if (!canCreate) {
+      await _showPaywall(context, ref);
+      return;
+    }
+    final created = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => const CreateEventScreen()),
+    );
+    if (created == true) {
+      ref.invalidate(eventQuotaProvider);
+      await ref.read(eventsProvider.notifier).refresh();
+    }
+  }
+
+  Future<void> _showPaywall(BuildContext context, WidgetRef ref) async {
+    final upgrade = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Free limit reached'),
+        content: const Text(
+          "You've created 3 free events this month. Upgrade to the premium "
+          'plan to create unlimited events for the next 30 days.',
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Not now')),
+          TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Upgrade')),
+        ],
+      ),
+    );
+    if (upgrade != true || !context.mounted) return;
+
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref.read(eventServiceProvider).subscribe();
+      ref.invalidate(eventQuotaProvider);
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Premium activated — create away! 🎉')),
+      );
+    } on ApiException catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(e.message)));
+    }
+  }
+
+  static String _fmtDate(DateTime d) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    final local = d.toLocal();
+    return '${local.day} ${months[local.month - 1]} ${local.year}';
+  }
+}
+
+/// Rounded container used by the events section cards.
+class _EventsCard extends StatelessWidget {
+  const _EventsCard({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppShapes.card),
+        border: Border.all(color: AppColors.tertiary),
+      ),
+      child: child,
+    );
   }
 }
 

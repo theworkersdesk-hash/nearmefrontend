@@ -6,8 +6,8 @@ import '../../config/constants.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/validators.dart';
-import '../../widgets/common/vibe_button.dart';
-import '../../widgets/common/vibe_text_field.dart';
+import '../../widgets/common/hloppl_button.dart';
+import '../../widgets/common/hloppl_text_field.dart';
 
 /// Two-step password reset: (1) request a code by email, (2) enter the code +
 /// a new password. Reuses the OTP infrastructure on the backend.
@@ -106,7 +106,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           Text('Enter your email and we\'ll send you a reset code.',
               style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(height: 28),
-          VibeTextField(
+          HlopplTextField(
             label: 'Email Address',
             hint: 'name@example.com',
             controller: _email,
@@ -114,7 +114,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             validator: Validators.email,
           ),
           const SizedBox(height: 24),
-          VibeButton(
+          HlopplButton(
               label: 'Send Reset Code',
               isLoading: isLoading,
               onPressed: _sendCode),
@@ -158,7 +158,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             ),
           ),
           const SizedBox(height: 20),
-          VibeTextField(
+          HlopplTextField(
             label: 'New Password',
             controller: _newPassword,
             obscureText: _obscure,
@@ -169,7 +169,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          VibeButton(
+          HlopplButton(
               label: 'Reset Password', isLoading: isLoading, onPressed: _reset),
           const SizedBox(height: 12),
           Center(

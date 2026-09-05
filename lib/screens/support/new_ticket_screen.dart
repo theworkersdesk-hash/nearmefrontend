@@ -7,8 +7,8 @@ import '../../config/theme.dart';
 import '../../models/support_ticket_model.dart';
 import '../../providers/providers.dart';
 import '../../utils/ui_feedback.dart';
-import '../../widgets/common/vibe_button.dart';
-import '../../widgets/common/vibe_text_field.dart';
+import '../../widgets/common/hloppl_button.dart';
+import '../../widgets/common/hloppl_text_field.dart';
 
 /// Create a new support request. Pops with `true` when a ticket was created.
 class NewTicketScreen extends ConsumerStatefulWidget {
@@ -121,7 +121,7 @@ class _NewTicketScreenState extends ConsumerState<NewTicketScreen> {
                     setState(() => _category = v ?? _category),
               ),
               const SizedBox(height: 16),
-              VibeTextField(
+              HlopplTextField(
                 label: 'Subject',
                 controller: _subject,
                 hint: 'Short summary',
@@ -130,7 +130,7 @@ class _NewTicketScreenState extends ConsumerState<NewTicketScreen> {
                     : null,
               ),
               const SizedBox(height: 16),
-              VibeTextField(
+              HlopplTextField(
                 label: 'Describe your issue',
                 controller: _body,
                 hint: 'Tell us what happened…',
@@ -154,7 +154,7 @@ class _NewTicketScreenState extends ConsumerState<NewTicketScreen> {
                 onRemove: (u) => setState(() => _attachments.remove(u)),
               ),
               const SizedBox(height: 28),
-              VibeButton(
+              HlopplButton(
                 label: 'Submit Request',
                 trailingIcon: Icons.send,
                 isLoading: _submitting,

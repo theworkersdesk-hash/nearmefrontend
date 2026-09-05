@@ -13,15 +13,14 @@ class DiscoverService {
   DiscoverService(this._api);
   final ApiService _api;
 
+  /// Radius is fixed at 5km by the backend, so it is not sent from the client.
   Future<DiscoverPage> nearby({
-    required double radiusMeters,
     String? category,
     String? gender,
     int page = 1,
     int limit = 20,
   }) async {
     final data = await _api.get<Map<String, dynamic>>('/discover', query: {
-      'radius': radiusMeters.round(),
       if (category != null) 'category': category,
       if (gender != null) 'gender': gender,
       'page': page,

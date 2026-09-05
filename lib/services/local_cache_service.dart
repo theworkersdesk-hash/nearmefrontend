@@ -12,8 +12,8 @@ class LocalCacheService {
   LocalCacheService._();
   static final LocalCacheService instance = LocalCacheService._();
 
-  static const _boxName = 'vibe_cache';
-  static const _prefsBoxName = 'vibe_prefs';
+  static const _boxName = 'hloppl_cache';
+  static const _prefsBoxName = 'hloppl_prefs';
   static const _kOnboardingSeen = 'onboarding_seen';
 
   Box<String>? _box;

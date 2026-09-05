@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../config/theme.dart';
 import '../../providers/event_provider.dart';
+import '../../services/maps_service.dart';
 import '../../utils/validators.dart';
-import '../../widgets/common/vibe_button.dart';
-import '../../widgets/common/vibe_text_field.dart';
+import '../../widgets/common/hloppl_button.dart';
+import '../../widgets/common/hloppl_text_field.dart';
+import '../../widgets/maps/location_picker.dart';
 
 /// Create-event form. Offline events require location + address; online
 /// events require a meeting link — mirrors the backend validation.
@@ -23,8 +25,10 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   final _address = TextEditingController();
   final _link = TextEditingController();
   final _maxParticipants = TextEditingController();
-  final _lat = TextEditingController();
-  final _lng = TextEditingController();
+
+  // Coordinates for offline events, set via the Google Maps location picker.
+  double? _lat;
+  double? _lng;
 
   bool _online = false;
   String _category = _offlineCategories.first;
@@ -60,15 +64,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 
   @override
   void dispose() {
-    for (final c in [
-      _title,
-      _desc,
-      _address,
-      _link,
-      _maxParticipants,
-      _lat,
-      _lng
-    ]) {
+    for (final c in [_title, _desc, _address, _link, _maxParticipants]) {
       c.dispose();
     }
     super.dispose();
@@ -94,10 +90,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     if (!_formKey.currentState!.validate()) return;
     if (_eventDate == null) return _snack('Pick an event date & time');
     if (!_online) {
-      if (_lat.text.isEmpty ||
-          _lng.text.isEmpty ||
-          _address.text.trim().isEmpty) {
-        return _snack('Offline events need latitude, longitude, and address');
+      if (_lat == null || _lng == null) {
+        return _snack('Pick the event location on the map');
+      }
+      if (_address.text.trim().isEmpty) {
+        return _snack('Add an address for the event');
       }
     } else if (_link.text.trim().isEmpty) {
       return _snack('Online events need a meeting link');
@@ -113,8 +110,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         'maxParticipants': int.parse(_maxParticipants.text),
       if (_online) 'meetingLink': _link.text.trim(),
       if (!_online) ...{
-        'latitude': double.parse(_lat.text),
-        'longitude': double.parse(_lng.text),
+        'latitude': _lat,
+        'longitude': _lng,
         'address': _address.text.trim(),
       },
     };
@@ -126,6 +123,17 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     } else {
       _snack(ref.read(eventsProvider).error ?? 'Could not create event');
     }
+  }
+
+  void _onLocationPicked(GeoPoint p) {
+    setState(() {
+      _lat = p.lat;
+      _lng = p.lng;
+      // Prefill the address from the resolved place; the user can still refine.
+      if (p.formattedAddress != null && p.formattedAddress!.isNotEmpty) {
+        _address.text = p.formattedAddress!;
+      }
+    });
   }
 
   void _snack(String m) =>
@@ -145,13 +153,13 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                VibeTextField(
+                HlopplTextField(
                   label: 'Title',
                   controller: _title,
                   validator: (v) => Validators.minLength(v, 3, 'Title'),
                 ),
                 const SizedBox(height: 16),
-                VibeTextField(
+                HlopplTextField(
                   label: 'Description',
                   controller: _desc,
                   maxLines: 3,
@@ -209,7 +217,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                 ),
                 const SizedBox(height: 16),
                 if (_online)
-                  VibeTextField(
+                  HlopplTextField(
                     label: 'Meeting Link',
                     controller: _link,
                     hint: 'https://…',
@@ -217,44 +225,28 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                     validator: Validators.url,
                   )
                 else ...[
-                  VibeTextField(
-                    label: 'Address',
-                    controller: _address,
-                    validator: (v) => Validators.required(v, 'Address'),
+                  LocationPicker(
+                    initial: (_lat != null && _lng != null)
+                        ? GeoPoint(lat: _lat!, lng: _lng!)
+                        : null,
+                    onChanged: _onLocationPicked,
                   ),
                   const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: VibeTextField(
-                          label: 'Latitude',
-                          controller: _lat,
-                          keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
-                          validator: Validators.latitude,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: VibeTextField(
-                          label: 'Longitude',
-                          controller: _lng,
-                          keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true),
-                          validator: Validators.longitude,
-                        ),
-                      ),
-                    ],
+                  HlopplTextField(
+                    label: 'Address',
+                    controller: _address,
+                    hint: 'Venue name or address details',
+                    validator: (v) => Validators.required(v, 'Address'),
                   ),
                 ],
                 const SizedBox(height: 16),
-                VibeTextField(
+                HlopplTextField(
                   label: 'Max Participants (optional)',
                   controller: _maxParticipants,
                   keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 24),
-                VibeButton(
+                HlopplButton(
                     label: 'Create Event',
                     isLoading: loading,
                     onPressed: _submit),

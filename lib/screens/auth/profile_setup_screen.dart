@@ -6,8 +6,8 @@ import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/validators.dart';
 import '../../widgets/common/avatar_uploader.dart';
-import '../../widgets/common/vibe_button.dart';
-import '../../widgets/common/vibe_text_field.dart';
+import '../../widgets/common/hloppl_button.dart';
+import '../../widgets/common/hloppl_text_field.dart';
 
 /// Step 3 of 3 — collects name, age, gender, interests (3+), bio.
 class ProfileSetupScreen extends ConsumerStatefulWidget {
@@ -89,7 +89,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                VibeTextField(
+                HlopplTextField(
                   label: 'Full Name',
                   controller: _name,
                   validator: (v) => Validators.required(v, 'Full name'),
@@ -99,7 +99,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: VibeTextField(
+                      child: HlopplTextField(
                         label: 'Age',
                         controller: _age,
                         keyboardType: TextInputType.number,
@@ -124,7 +124,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                       AppConstants.interestTags.map(_interestChip).toList(),
                 ),
                 const SizedBox(height: 18),
-                VibeTextField(
+                HlopplTextField(
                   label: 'Bio',
                   hint: 'Tell us about yourself…',
                   controller: _bio,
@@ -132,7 +132,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   maxLength: AppConstants.maxBioLength,
                 ),
                 const SizedBox(height: 12),
-                VibeButton(
+                HlopplButton(
                   label: 'Finish',
                   trailingIcon: Icons.check,
                   isLoading: isLoading,

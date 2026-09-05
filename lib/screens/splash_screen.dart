@@ -15,7 +15,7 @@ class SplashScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'vibe',
+              'hloppl',
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 40,

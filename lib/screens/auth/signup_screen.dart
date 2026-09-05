@@ -6,11 +6,11 @@ import '../../config/routes.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/validators.dart';
-import '../../widgets/common/vibe_button.dart';
-import '../../widgets/common/vibe_text_field.dart';
+import '../../widgets/common/hloppl_button.dart';
+import '../../widgets/common/hloppl_text_field.dart';
 import 'otp_verification_screen.dart';
 
-/// "Join the Vibe" — email + phone + T&C, dispatches dual OTP on submit.
+/// "Join hloppl" — email + phone + T&C, dispatches dual OTP on submit.
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
 
@@ -94,7 +94,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('vibe',
+                    Text('hloppl',
                         style: Theme.of(context)
                             .textTheme
                             .displayLarge
@@ -106,13 +106,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   ],
                 ),
                 const SizedBox(height: 24),
-                Text('Join the Vibe',
+                Text('Join hloppl',
                     style: Theme.of(context).textTheme.headlineMedium),
                 const SizedBox(height: 6),
                 Text('Start your journey to meaningful connections nearby.',
                     style: Theme.of(context).textTheme.bodySmall),
                 const SizedBox(height: 28),
-                VibeTextField(
+                HlopplTextField(
                   label: 'Email Address',
                   hint: 'name@example.com',
                   controller: _email,
@@ -120,7 +120,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   validator: Validators.email,
                 ),
                 const SizedBox(height: 18),
-                VibeTextField(
+                HlopplTextField(
                   label: 'Phone Number',
                   hint: '98XXX XXXXX',
                   controller: _phone,
@@ -129,7 +129,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   inputPrefixText: _countryCode,
                 ),
                 const SizedBox(height: 18),
-                VibeTextField(
+                HlopplTextField(
                   label: 'Password',
                   hint: 'Create a strong password',
                   controller: _password,
@@ -153,7 +153,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   label: 'I agree to the Terms of Policy',
                 ),
                 const SizedBox(height: 20),
-                VibeButton(
+                HlopplButton(
                   label: 'Get Started',
                   trailingIcon: Icons.arrow_forward,
                   isLoading: isLoading,
@@ -165,17 +165,17 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: VibeButton(
+                      child: HlopplButton(
                         label: 'Google',
-                        variant: VibeButtonVariant.outline,
+                        variant: HlopplButtonVariant.outline,
                         onPressed: _googleSignIn,
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: VibeButton(
+                      child: HlopplButton(
                         label: 'Apple',
-                        variant: VibeButtonVariant.outline,
+                        variant: HlopplButtonVariant.outline,
                         onPressed: () =>
                             _snack('Apple sign-in — configure to enable'),
                       ),

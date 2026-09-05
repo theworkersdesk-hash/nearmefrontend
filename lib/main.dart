@@ -20,5 +20,5 @@ Future<void> main() async {
     debugPrint('Firebase init skipped/failed: $e');
   }
 
-  runApp(const ProviderScope(child: VibeApp()));
+  runApp(const ProviderScope(child: HlopplApp()));
 }

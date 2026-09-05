@@ -7,7 +7,7 @@ import '../../models/discover_user_model.dart';
 import '../../providers/discover_provider.dart';
 import '../../providers/providers.dart';
 import '../../utils/ui_feedback.dart';
-import '../../widgets/common/vibe_button.dart';
+import '../../widgets/common/hloppl_button.dart';
 
 /// Full profile shown when a discover card is tapped.
 class UserProfileView extends ConsumerWidget {
@@ -144,16 +144,16 @@ class UserProfileView extends ConsumerWidget {
   Widget _cta(BuildContext context, WidgetRef ref, DiscoverUser u) {
     switch (u.connectionStatus) {
       case ConnectionStatus.connected:
-        return const VibeButton(label: 'Connected', onPressed: null);
+        return const HlopplButton(label: 'Connected', onPressed: null);
       case ConnectionStatus.pendingSent:
-        return const VibeButton(label: 'Request Pending', onPressed: null);
+        return const HlopplButton(label: 'Request Pending', onPressed: null);
       case ConnectionStatus.pendingReceived:
-        return VibeButton(
+        return HlopplButton(
           label: 'Respond in Requests',
           onPressed: () => Navigator.of(context).pop(),
         );
       case ConnectionStatus.none:
-        return VibeButton(
+        return HlopplButton(
           label: 'Connect',
           trailingIcon: Icons.person_add_alt,
           onPressed: () => runWithFeedback(

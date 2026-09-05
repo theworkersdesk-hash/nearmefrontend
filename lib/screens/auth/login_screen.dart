@@ -6,8 +6,8 @@ import '../../config/routes.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/validators.dart';
-import '../../widgets/common/vibe_button.dart';
-import '../../widgets/common/vibe_text_field.dart';
+import '../../widgets/common/hloppl_button.dart';
+import '../../widgets/common/hloppl_text_field.dart';
 import 'forgot_password_screen.dart';
 
 /// Login by email OR phone + password.
@@ -73,7 +73,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 24),
-                Text('vibe',
+                Text('hloppl',
                     style: Theme.of(context)
                         .textTheme
                         .displayLarge
@@ -85,14 +85,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Text('Log in to continue the vibe.',
                     style: Theme.of(context).textTheme.bodySmall),
                 const SizedBox(height: 28),
-                VibeTextField(
+                HlopplTextField(
                   label: 'Email or Phone',
                   hint: 'name@example.com or +9198XXXXXXXX',
                   controller: _identifier,
                   validator: Validators.loginIdentifier,
                 ),
                 const SizedBox(height: 18),
-                VibeTextField(
+                HlopplTextField(
                   label: 'Password',
                   hint: 'Your password',
                   controller: _password,
@@ -115,7 +115,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                VibeButton(
+                HlopplButton(
                     label: 'Log In', isLoading: isLoading, onPressed: _submit),
                 const SizedBox(height: 20),
                 const Row(
@@ -131,9 +131,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                VibeButton(
+                HlopplButton(
                   label: 'Google',
-                  variant: VibeButtonVariant.outline,
+                  variant: HlopplButtonVariant.outline,
                   onPressed: _googleSignIn,
                 ),
                 const SizedBox(height: 20),

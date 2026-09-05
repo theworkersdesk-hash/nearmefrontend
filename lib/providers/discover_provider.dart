@@ -8,14 +8,14 @@ import 'providers.dart';
 
 @immutable
 class DiscoverFilters {
-  const DiscoverFilters({this.radiusKm = 5, this.category});
-  final double radiusKm;
+  const DiscoverFilters({this.category});
+
+  /// Radius is fixed at 5km by the backend; exposed only for display.
+  final double radiusKm = 5;
   final String? category; // gen_z | millennial | gen_x | null (All)
 
-  DiscoverFilters copyWith(
-          {double? radiusKm, String? category, bool clearCategory = false}) =>
+  DiscoverFilters copyWith({String? category, bool clearCategory = false}) =>
       DiscoverFilters(
-        radiusKm: radiusKm ?? this.radiusKm,
         category: clearCategory ? null : (category ?? this.category),
       );
 }
@@ -94,7 +94,6 @@ class DiscoverNotifier extends StateNotifier<DiscoverState> {
 
     try {
       final page = await _ref.read(discoverServiceProvider).nearby(
-            radiusMeters: state.filters.radiusKm * 1000,
             category: state.filters.category,
             page: 1,
           );
@@ -124,7 +123,6 @@ class DiscoverNotifier extends StateNotifier<DiscoverState> {
     try {
       final next = state.page + 1;
       final page = await _ref.read(discoverServiceProvider).nearby(
-            radiusMeters: state.filters.radiusKm * 1000,
             category: state.filters.category,
             page: next,
           );
@@ -137,10 +135,6 @@ class DiscoverNotifier extends StateNotifier<DiscoverState> {
     } on ApiException catch (e) {
       state = state.copyWith(isLoadingMore: false, error: e.message);
     }
-  }
-
-  void setRadius(double km) {
-    state = state.copyWith(filters: state.filters.copyWith(radiusKm: km));
   }
 
   Future<void> setCategory(String? category) async {

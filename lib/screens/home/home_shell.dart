@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../config/theme.dart';
+import '../../providers/discover_provider.dart';
 import '../../providers/location_provider.dart';
 import '../../providers/providers.dart';
 import '../chat/chat_list_screen.dart';
@@ -19,7 +22,8 @@ class HomeShell extends ConsumerStatefulWidget {
   ConsumerState<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends ConsumerState<HomeShell> {
+class _HomeShellState extends ConsumerState<HomeShell>
+    with WidgetsBindingObserver {
   int _index = 0;
 
   static const _tabs = [
@@ -32,10 +36,34 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(locationProvider.notifier).sync();
       _initNotifications();
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// When the app returns to the foreground, re-capture the device location and
+  /// rebuild the nearby-people list so discovery always reflects where the user
+  /// currently is.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_refreshLocationAndPeople());
+    }
+  }
+
+  Future<void> _refreshLocationAndPeople() async {
+    final synced = await ref.read(locationProvider.notifier).sync();
+    if (synced && mounted) {
+      await ref.read(discoverProvider.notifier).refresh();
+    }
   }
 
   /// Registers for FCM (guarded — no-ops until Firebase is configured) and

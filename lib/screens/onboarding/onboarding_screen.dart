@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../config/routes.dart';
 import '../../config/theme.dart';
 import '../../providers/onboarding_provider.dart';
-import '../../widgets/common/vibe_button.dart';
+import '../../widgets/common/hloppl_button.dart';
 
 /// First-launch landing page ("Find your tribe"). Shown once (flag persisted in
 /// Hive) and never for a logged-in user. "Let's Get Started" → Sign In.
@@ -74,7 +74,7 @@ class OnboardingScreen extends ConsumerWidget {
                       fit: BoxFit.contain),
                 ),
                 const Spacer(),
-                VibeButton(
+                HlopplButton(
                   label: "Let's Get Started",
                   trailingIcon: Icons.arrow_forward,
                   onPressed: () async {

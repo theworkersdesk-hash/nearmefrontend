@@ -5,15 +5,15 @@ import '../../config/theme.dart';
 /// Primary CTA — a fully-rounded gradient pill with a loading spinner and an
 /// optional trailing icon (e.g. the "Get Started →" arrow). Matches the design's
 /// purple→magenta gradient buttons. The [outline] variant is a bordered pill.
-class VibeButton extends StatelessWidget {
-  const VibeButton({
+class HlopplButton extends StatelessWidget {
+  const HlopplButton({
     super.key,
     required this.label,
     required this.onPressed,
     this.isLoading = false,
     this.trailingIcon,
     this.leadingIcon,
-    this.variant = VibeButtonVariant.primary,
+    this.variant = HlopplButtonVariant.primary,
     this.height = 56,
   });
 
@@ -22,12 +22,12 @@ class VibeButton extends StatelessWidget {
   final bool isLoading;
   final IconData? trailingIcon;
   final Widget? leadingIcon;
-  final VibeButtonVariant variant;
+  final HlopplButtonVariant variant;
   final double height;
 
   @override
   Widget build(BuildContext context) {
-    final isOutline = variant == VibeButtonVariant.outline;
+    final isOutline = variant == HlopplButtonVariant.outline;
     final fg = isOutline ? AppColors.onSurface : AppColors.onPrimary;
 
     final content = isLoading
@@ -95,4 +95,4 @@ class VibeButton extends StatelessWidget {
   }
 }
 
-enum VibeButtonVariant { primary, outline }
+enum HlopplButtonVariant { primary, outline }

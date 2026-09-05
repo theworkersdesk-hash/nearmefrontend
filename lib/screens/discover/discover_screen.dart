@@ -10,6 +10,7 @@ import '../../providers/discover_provider.dart';
 import '../../providers/providers.dart';
 import '../../utils/ui_feedback.dart';
 import '../../widgets/discover/user_card.dart';
+import '../../widgets/maps/current_location_map.dart';
 import 'pending_requests_screen.dart';
 import 'user_profile_view.dart';
 
@@ -71,19 +72,19 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                   children: [
                     const Icon(Icons.place, color: AppColors.primary, size: 20),
                     const SizedBox(width: 6),
-                    Text('Range: ${state.filters.radiusKm.round()} km'),
+                    Text('Showing people within '
+                        '${state.filters.radiusKm.round()} km'),
                   ],
                 ),
-                Slider(
-                  value: state.filters.radiusKm,
-                  min: AppConstants.minRadiusKm,
-                  max: AppConstants.maxRadiusKm,
-                  divisions: 49,
-                  label: '${state.filters.radiusKm.round()} km',
-                  onChanged: notifier.setRadius,
-                  onChangeEnd: (_) => notifier.refresh(),
+                const SizedBox(height: 4),
+                Text(
+                  'Range is fixed at ${AppConstants.defaultRadiusKm.round()} km '
+                  'and updates from your current location.',
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
+                const CurrentLocationMap(height: 140),
+                const SizedBox(height: 16),
                 Text('Generation',
                     style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 8),

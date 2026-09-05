@@ -10,8 +10,8 @@ import '../../config/routes.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/validators.dart';
-import '../../widgets/common/vibe_button.dart';
-import '../../widgets/common/vibe_text_field.dart';
+import '../../widgets/common/hloppl_button.dart';
+import '../../widgets/common/hloppl_text_field.dart';
 
 /// Completes Google sign-up for a NEW user: collect a phone, OTP-verify it, then
 /// the account is created (Firebase email is already verified). On success the
@@ -120,7 +120,7 @@ class _GooglePhoneScreenState extends ConsumerState<GooglePhoneScreen> {
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 24),
-          VibeTextField(
+          HlopplTextField(
             label: 'Phone Number',
             hint: '98XXX XXXXX',
             controller: _phone,
@@ -129,7 +129,7 @@ class _GooglePhoneScreenState extends ConsumerState<GooglePhoneScreen> {
             inputPrefixText: _countryCode,
           ),
           const SizedBox(height: 24),
-          VibeButton(
+          HlopplButton(
             label: 'Send Code',
             trailingIcon: Icons.arrow_forward,
             isLoading: isLoading,
@@ -171,7 +171,7 @@ class _GooglePhoneScreenState extends ConsumerState<GooglePhoneScreen> {
           onCompleted: (_) => _verify(),
         ),
         const SizedBox(height: 24),
-        VibeButton(label: 'Verify & Continue', isLoading: isLoading, onPressed: _verify),
+        HlopplButton(label: 'Verify & Continue', isLoading: isLoading, onPressed: _verify),
         const SizedBox(height: 12),
         Center(
           child: _secondsLeft > 0

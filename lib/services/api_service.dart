@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 
 import '../config/constants.dart';
@@ -89,6 +91,21 @@ class ApiService {
 
   Future<T> get<T>(String path, {Map<String, dynamic>? query}) =>
       _unwrap<T>(_dio.get(path, queryParameters: query));
+
+  /// Fetch raw bytes (authed) — used for the proxied Google Static Map image,
+  /// which must carry the JWT (a plain Image.network wouldn't).
+  Future<Uint8List> getBytes(String path, {Map<String, dynamic>? query}) async {
+    try {
+      final res = await _dio.get<List<int>>(
+        path,
+        queryParameters: query,
+        options: Options(responseType: ResponseType.bytes),
+      );
+      return Uint8List.fromList(res.data ?? const []);
+    } on DioException catch (e) {
+      throw ApiException.fromDio(e);
+    }
+  }
 
   Future<T> post<T>(String path, {Object? data, bool skipAuth = false}) =>
       _unwrap<T>(

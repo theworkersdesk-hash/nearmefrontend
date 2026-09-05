@@ -10,6 +10,7 @@ import '../services/google_auth_service.dart';
 import '../services/image_service.dart';
 import '../services/local_cache_service.dart';
 import '../services/location_service.dart';
+import '../services/maps_service.dart';
 import '../services/notification_service.dart';
 import '../services/socket_service.dart';
 import '../services/storage_service.dart';
@@ -43,6 +44,9 @@ final chatServiceProvider =
 
 final eventServiceProvider = Provider<EventService>(
     (ref) => EventService(ref.watch(apiServiceProvider)));
+
+final mapsServiceProvider = Provider<MapsService>(
+    (ref) => MapsService(ref.watch(apiServiceProvider)));
 
 final locationServiceProvider = Provider<LocationService>(
     (ref) => LocationService(ref.watch(apiServiceProvider)));

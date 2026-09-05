@@ -9,7 +9,8 @@ import '../../models/event_model.dart';
 import '../../providers/event_provider.dart';
 import '../../utils/ui_feedback.dart';
 import '../../widgets/common/avatar.dart';
-import '../../widgets/common/vibe_button.dart';
+import '../../widgets/common/hloppl_button.dart';
+import '../../widgets/maps/static_map_view.dart';
 
 class EventDetailScreen extends ConsumerWidget {
   const EventDetailScreen({super.key, required this.eventId});
@@ -72,8 +73,18 @@ class EventDetailScreen extends ConsumerWidget {
                     onTap: () => _open(e.meetingLink),
                     child: _row(Icons.link, e.meetingLink ?? '', link: true),
                   )
-                else
+                else ...[
                   _row(Icons.place_outlined, e.address ?? ''),
+                  if (e.latitude != null && e.longitude != null) ...[
+                    const SizedBox(height: 12),
+                    StaticMapView(
+                      lat: e.latitude!,
+                      lng: e.longitude!,
+                      height: 170,
+                      label: 'Tap for directions',
+                    ),
+                  ],
+                ],
                 const SizedBox(height: 16),
                 Text('About', style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 6),
@@ -95,7 +106,7 @@ class EventDetailScreen extends ConsumerWidget {
                     '${e.participantCount}${e.maxParticipants != null ? ' / ${e.maxParticipants}' : ''} joined',
                     style: Theme.of(context).textTheme.bodySmall),
                 const SizedBox(height: 24),
-                VibeButton(
+                HlopplButton(
                   label: e.isFull ? 'Event Full' : 'Join Event',
                   onPressed: e.isFull
                       ? null

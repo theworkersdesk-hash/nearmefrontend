@@ -7,7 +7,7 @@ import 'package:pinput/pinput.dart';
 import '../../config/constants.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
-import '../../widgets/common/vibe_button.dart';
+import '../../widgets/common/hloppl_button.dart';
 
 /// Navigation args for the OTP screen: verify email first, then phone.
 class OtpArgs {
@@ -225,7 +225,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                         onCompleted: (_) => _verify(),
                       ),
                       const SizedBox(height: 24),
-                      VibeButton(
+                      HlopplButton(
                         label: 'Verify Identity',
                         trailingIcon: Icons.arrow_forward,
                         isLoading: isLoading,

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 /// Labelled text field used across auth + profile forms.
-class VibeTextField extends StatelessWidget {
-  const VibeTextField({
+class HlopplTextField extends StatelessWidget {
+  const HlopplTextField({
     super.key,
     required this.label,
     this.hint,

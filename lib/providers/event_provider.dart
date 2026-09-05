@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '../models/event_model.dart';
 import '../services/api_exception.dart';
+import '../services/event_service.dart';
 import 'providers.dart';
 
 /// Events tab filter: all | online | offline.
@@ -159,4 +161,17 @@ final eventsProvider = StateNotifierProvider<EventsNotifier, EventsState>(
 final eventDetailProvider =
     FutureProvider.family<EventModel, String>((ref, id) async {
   return ref.read(eventServiceProvider).detail(id);
+});
+
+/// The current user's monthly event-creation quota. Invalidate after creating
+/// an event or upgrading so the profile reflects the new remaining count.
+final eventQuotaProvider = FutureProvider<EventQuota>((ref) async {
+  return ref.read(eventServiceProvider).quota();
+});
+
+/// Current device position (for showing distances on Explore experience cards).
+/// Resolves to null when permission is denied or location is unavailable — the
+/// UI falls back to a category label in that case.
+final userPositionProvider = FutureProvider<Position?>((ref) async {
+  return ref.read(locationServiceProvider).getCurrent();
 });

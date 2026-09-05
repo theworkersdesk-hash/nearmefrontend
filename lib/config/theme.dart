@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Vibe color system, derived from primary #B65FCB. Kept in one place so every
+/// hloppl color system, derived from primary #B65FCB. Kept in one place so every
 /// widget references named tokens rather than raw hex.
 class AppColors {
   const AppColors._();

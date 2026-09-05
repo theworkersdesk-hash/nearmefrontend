@@ -4,8 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../config/constants.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/validators.dart';
-import '../../widgets/common/vibe_button.dart';
-import '../../widgets/common/vibe_text_field.dart';
+import '../../widgets/common/hloppl_button.dart';
+import '../../widgets/common/hloppl_text_field.dart';
 
 /// Pre-filled edit form for the current user's profile.
 class EditProfileScreen extends ConsumerStatefulWidget {
@@ -84,7 +84,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                VibeTextField(
+                HlopplTextField(
                   label: 'Full Name',
                   controller: _name,
                   validator: (v) => Validators.required(v, 'Full name'),
@@ -94,7 +94,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: VibeTextField(
+                      child: HlopplTextField(
                         label: 'Age',
                         controller: _age,
                         keyboardType: TextInputType.number,
@@ -146,14 +146,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   }).toList(),
                 ),
                 const SizedBox(height: 16),
-                VibeTextField(
+                HlopplTextField(
                   label: 'Bio',
                   controller: _bio,
                   maxLines: 4,
                   maxLength: AppConstants.maxBioLength,
                 ),
                 const SizedBox(height: 24),
-                VibeButton(label: 'Save', isLoading: loading, onPressed: _save),
+                HlopplButton(label: 'Save', isLoading: loading, onPressed: _save),
               ],
             ),
           ),
