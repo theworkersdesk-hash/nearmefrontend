@@ -18,6 +18,9 @@ class EventModel {
     this.longitude,
     this.maxParticipants,
     this.coverImageUrl,
+    this.isPaid = false,
+    this.price,
+    this.visibilityRadiusM = 5000,
     this.creatorName,
     this.creatorPhotoUrl,
   });
@@ -36,6 +39,9 @@ class EventModel {
   final double? longitude;
   final int? maxParticipants;
   final String? coverImageUrl;
+  final bool isPaid;
+  final int? price; // whole INR; null when free
+  final int visibilityRadiusM;
   final int participantCount;
   final String? creatorName;
   final String? creatorPhotoUrl;
@@ -60,6 +66,9 @@ class EventModel {
         'longitude': longitude,
         'maxParticipants': maxParticipants,
         'coverImageUrl': coverImageUrl,
+        'isPaid': isPaid,
+        'price': price,
+        'visibilityRadiusM': visibilityRadiusM,
         'participantCount': participantCount,
         'creator': {'name': creatorName, 'photoUrl': creatorPhotoUrl},
       };
@@ -82,6 +91,9 @@ class EventModel {
       longitude: (j['longitude'] as num?)?.toDouble(),
       maxParticipants: j['maxParticipants'] as int?,
       coverImageUrl: j['coverImageUrl'] as String?,
+      isPaid: j['isPaid'] as bool? ?? false,
+      price: (j['price'] as num?)?.toInt(),
+      visibilityRadiusM: (j['visibilityRadiusM'] as num?)?.toInt() ?? 5000,
       participantCount: j['participantCount'] as int? ?? 0,
       creatorName: creator?['name'] as String?,
       creatorPhotoUrl: creator?['photoUrl'] as String?,

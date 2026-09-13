@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show TextInputFormatter;
 
 /// Labelled text field used across auth + profile forms.
 class HlopplTextField extends StatelessWidget {
@@ -16,6 +17,7 @@ class HlopplTextField extends StatelessWidget {
     this.maxLength,
     this.maxLines = 1,
     this.onChanged,
+    this.inputFormatters,
   });
 
   final String label;
@@ -32,6 +34,7 @@ class HlopplTextField extends StatelessWidget {
   final int? maxLength;
   final int maxLines;
   final ValueChanged<String>? onChanged;
+  final List<TextInputFormatter>? inputFormatters;
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +55,7 @@ class HlopplTextField extends StatelessWidget {
           maxLength: maxLength,
           maxLines: maxLines,
           onChanged: onChanged,
+          inputFormatters: inputFormatters,
           decoration: InputDecoration(
             hintText: hint,
             prefixIcon: prefix,

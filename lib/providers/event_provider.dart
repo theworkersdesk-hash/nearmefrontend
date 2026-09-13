@@ -68,6 +68,17 @@ class EventsNotifier extends StateNotifier<EventsState> {
   static const _cacheTtl = Duration(minutes: 5);
   String _cacheKey(EventTab tab) => 'events:${tab.name}';
 
+  /// Current viewer coordinates for visibility filtering. Null when location is
+  /// unavailable — the feed then falls back to showing all events.
+  Future<({double? lat, double? lng})> _viewerCoords() async {
+    try {
+      final pos = await _ref.read(userPositionProvider.future);
+      return (lat: pos?.latitude, lng: pos?.longitude);
+    } catch (_) {
+      return (lat: null, lng: null);
+    }
+  }
+
   Future<void> setTab(EventTab tab) async {
     state = state.copyWith(tab: tab);
     await refresh();
@@ -92,9 +103,10 @@ class EventsNotifier extends StateNotifier<EventsState> {
     }
 
     try {
+      final coords = await _viewerCoords();
       final page = await _ref
           .read(eventServiceProvider)
-          .list(mode: state.tab.mode, page: 1);
+          .list(mode: state.tab.mode, page: 1, lat: coords.lat, lng: coords.lng);
       state = state.copyWith(
           events: page.events,
           isLoading: false,
@@ -115,9 +127,9 @@ class EventsNotifier extends StateNotifier<EventsState> {
     state = state.copyWith(isLoadingMore: true);
     try {
       final next = state.page + 1;
-      final page = await _ref
-          .read(eventServiceProvider)
-          .list(mode: state.tab.mode, page: next);
+      final coords = await _viewerCoords();
+      final page = await _ref.read(eventServiceProvider).list(
+          mode: state.tab.mode, page: next, lat: coords.lat, lng: coords.lng);
       state = state.copyWith(
         events: [...state.events, ...page.events],
         isLoadingMore: false,
@@ -167,6 +179,11 @@ final eventDetailProvider =
 /// an event or upgrading so the profile reflects the new remaining count.
 final eventQuotaProvider = FutureProvider<EventQuota>((ref) async {
   return ref.read(eventServiceProvider).quota();
+});
+
+/// Premium plan catalog (₹99/mo, ₹219/3mo) for the paywall sheet.
+final eventPlansProvider = FutureProvider<List<PremiumPlan>>((ref) async {
+  return ref.read(eventServiceProvider).plans();
 });
 
 /// Current device position (for showing distances on Explore experience cards).

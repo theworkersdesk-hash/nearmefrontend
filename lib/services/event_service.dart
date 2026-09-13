@@ -44,15 +44,44 @@ class EventQuota {
       );
 }
 
+/// A premium plan tier from the `/events/plans` catalog.
+class PremiumPlan {
+  const PremiumPlan({
+    required this.code,
+    required this.label,
+    required this.priceInr,
+    required this.days,
+  });
+
+  final String code; // monthly | quarterly
+  final String label; // "1 month" | "3 months"
+  final int priceInr;
+  final int days;
+
+  factory PremiumPlan.fromJson(Map<String, dynamic> j) => PremiumPlan(
+        code: j['code'] as String,
+        label: j['label'] as String,
+        priceInr: (j['priceInr'] as num).toInt(),
+        days: (j['days'] as num).toInt(),
+      );
+}
+
 class EventService {
   EventService(this._api);
   final ApiService _api;
 
   Future<EventPage> list(
-      {String? mode, String? category, int page = 1, int limit = 20}) async {
+      {String? mode,
+      String? category,
+      int page = 1,
+      int limit = 20,
+      double? lat,
+      double? lng}) async {
     final data = await _api.get<Map<String, dynamic>>('/events', query: {
       if (mode != null) 'mode': mode,
       if (category != null) 'category': category,
+      if (lat != null) 'lat': lat,
+      if (lng != null) 'lng': lng,
       'page': page,
       'limit': limit,
     });
@@ -84,9 +113,25 @@ class EventService {
     return EventQuota.fromJson(data);
   }
 
-  /// Activates the premium plan (mock purchase) and returns the refreshed quota.
-  Future<EventQuota> subscribe() async {
-    final data = await _api.post<Map<String, dynamic>>('/events/subscribe');
+  /// The premium plan catalog (₹99/mo, ₹219/3mo) for the paywall.
+  Future<List<PremiumPlan>> plans() async {
+    final data = await _api.get<Map<String, dynamic>>('/events/plans');
+    return (data['plans'] as List)
+        .map((p) => PremiumPlan.fromJson(p as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Uploads an event banner; returns the stored public URL (→ coverImageUrl).
+  Future<String> uploadBanner(String filePath) async {
+    final data =
+        await _api.uploadFile<Map<String, dynamic>>('/events/banner', filePath);
+    return data['url'] as String;
+  }
+
+  /// Activates the selected premium plan (mock purchase); returns refreshed quota.
+  Future<EventQuota> subscribe({String plan = 'monthly'}) async {
+    final data = await _api
+        .post<Map<String, dynamic>>('/events/subscribe', data: {'plan': plan});
     return EventQuota.fromJson(data);
   }
 }

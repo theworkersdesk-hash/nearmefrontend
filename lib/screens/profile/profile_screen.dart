@@ -4,10 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/event_provider.dart';
-import '../../providers/providers.dart';
-import '../../services/api_exception.dart';
 import '../../widgets/common/avatar_uploader.dart';
 import '../../widgets/common/hloppl_button.dart';
+import '../../widgets/events/premium_plans_sheet.dart';
 import '../events/create_event_screen.dart';
 import '../support/help_support_screen.dart';
 import 'edit_profile_screen.dart';
@@ -267,7 +266,9 @@ class _EventsSection extends ConsumerWidget {
   Future<void> _createEvent(BuildContext context, WidgetRef ref,
       {required bool canCreate}) async {
     if (!canCreate) {
-      await _showPaywall(context, ref);
+      // Free monthly allowance exhausted — open the premium paywall instead.
+      await showPremiumPlansSheet(context,
+          reason: "You've used all your free events this month.");
       return;
     }
     final created = await Navigator.of(context).push<bool>(
@@ -276,39 +277,6 @@ class _EventsSection extends ConsumerWidget {
     if (created == true) {
       ref.invalidate(eventQuotaProvider);
       await ref.read(eventsProvider.notifier).refresh();
-    }
-  }
-
-  Future<void> _showPaywall(BuildContext context, WidgetRef ref) async {
-    final upgrade = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Free limit reached'),
-        content: const Text(
-          "You've created 3 free events this month. Upgrade to the premium "
-          'plan to create unlimited events for the next 30 days.',
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Not now')),
-          TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Upgrade')),
-        ],
-      ),
-    );
-    if (upgrade != true || !context.mounted) return;
-
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      await ref.read(eventServiceProvider).subscribe();
-      ref.invalidate(eventQuotaProvider);
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Premium activated — create away! 🎉')),
-      );
-    } on ApiException catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text(e.message)));
     }
   }
 

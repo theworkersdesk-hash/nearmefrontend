@@ -60,6 +60,14 @@ class EventDetailScreen extends ConsumerWidget {
                   children: [
                     Chip(label: Text(e.isOnline ? 'Online' : 'Offline')),
                     Chip(label: Text(e.category.replaceAll('_', ' '))),
+                    Chip(
+                      label: Text(e.isPaid && e.price != null
+                          ? '₹${e.price}'
+                          : 'Free'),
+                      backgroundColor: e.isPaid
+                          ? AppColors.tertiary
+                          : null,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 16),
