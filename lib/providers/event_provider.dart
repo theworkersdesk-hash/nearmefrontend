@@ -69,10 +69,14 @@ class EventsNotifier extends StateNotifier<EventsState> {
   String _cacheKey(EventTab tab) => 'events:${tab.name}';
 
   /// Current viewer coordinates for visibility filtering. Null when location is
-  /// unavailable — the feed then falls back to showing all events.
+  /// unavailable — the feed then falls back to showing all events. Capped by a
+  /// short timeout so the feed never blocks waiting on a GPS fix; once location
+  /// resolves, a later refresh applies the distance filter.
   Future<({double? lat, double? lng})> _viewerCoords() async {
     try {
-      final pos = await _ref.read(userPositionProvider.future);
+      final pos = await _ref
+          .read(userPositionProvider.future)
+          .timeout(const Duration(seconds: 3));
       return (lat: pos?.latitude, lng: pos?.longitude);
     } catch (_) {
       return (lat: null, lng: null);

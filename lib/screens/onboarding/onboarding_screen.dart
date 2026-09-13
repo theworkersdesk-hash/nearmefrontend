@@ -19,9 +19,14 @@ class OnboardingScreen extends ConsumerWidget {
       body: Container(
         decoration: const BoxDecoration(gradient: AppColors.surfaceGradient),
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-            child: Column(
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+                    child: Column(
               children: [
                 const SizedBox(height: 8),
                 // Headline: "Find your" + script-style "tribe".
@@ -84,6 +89,10 @@ class OnboardingScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
               ],
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
         ),

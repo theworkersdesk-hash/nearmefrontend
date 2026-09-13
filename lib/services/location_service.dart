@@ -39,24 +39,43 @@ class LocationService {
       return LocationOutcome.denied;
     }
 
-    final pos =
-        await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    await pushLocation(pos.latitude, pos.longitude);
-    return LocationOutcome.ok;
+    try {
+      final pos = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      ).timeout(_fixTimeout);
+      await pushLocation(pos.latitude, pos.longitude);
+      return LocationOutcome.ok;
+    } catch (_) {
+      // Couldn't get a fix within the timeout (weak GPS, or a web permission
+      // prompt left unanswered). Treat as service-disabled so the UI can hint.
+      return LocationOutcome.serviceDisabled;
+    }
   }
 
-  /// Returns the current position or null if unavailable/denied (no push).
+  /// Max time to wait for a single GPS fix before giving up. Without this a
+  /// slow/blocked provider (notably a pending web permission prompt) hangs the
+  /// caller forever — which previously froze the events/discover feeds.
+  static const _fixTimeout = Duration(seconds: 10);
+
+  /// Returns the current position or null if unavailable/denied/timed out (no
+  /// push). Never throws and never hangs — callers fall back gracefully.
   Future<Position?> getCurrent() async {
-    if (!await Geolocator.isLocationServiceEnabled()) return null;
-    var permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-    if (permission == LocationPermission.denied ||
-        permission == LocationPermission.deniedForever) {
+    try {
+      if (!await Geolocator.isLocationServiceEnabled()) return null;
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return null;
+      }
+      return await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      ).timeout(_fixTimeout);
+    } catch (_) {
       return null;
     }
-    return Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
   }
 
   Future<void> pushLocation(double latitude, double longitude) async {
